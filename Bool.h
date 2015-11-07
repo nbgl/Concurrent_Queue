@@ -1,9 +1,8 @@
 //
-//  Bool.h
-//  Concurrent_Queue
+//  Concurrent_Queue.c
 //
 //  Created by Jakub Nabaglo on 7/11/2015.
-//  Copyright © 2015 Jakub Nabaglo. All rights reserved.
+//  Released in public domain.
 //
 
 #ifndef Bool_h
