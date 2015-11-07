@@ -9,6 +9,7 @@
 #define Concurrent_Queue_h
 
 #include "Bool.h"
+#include "Concurrent_Queue_Element_Type.h"
 
 
 #define CONCURRENT_QUEUE_SIZE \
@@ -18,34 +19,37 @@ typedef struct {
 } ConcurrentQueue;
 
 /* Initialises the queue. Must be called before any other function is called. */
-void   concurrentQueueInit           (ConcurrentQueue *queue);
+void concurrentQueueInit(ConcurrentQueue *queue);
 
 /* Destroys the queue. Must be called after all other functions have returned.
  Deallocating the queue without calling this function will result in a memory
  leak. */
-void   concurrentQueueDestroy        (ConcurrentQueue *queue);
+void concurrentQueueDestroy(ConcurrentQueue *queue);
 
 /* Pushes element to queue. Thread-safe. */
-void   concurrentQueuePush           (ConcurrentQueue *queue, void *element);
+void concurrentQueuePush(ConcurrentQueue *queue,
+                         CONCURRENT_QUEUE_TYPE element);
 
 /* Pops from the front of the queue. If the queue is empty, blocks until an
  element is added. Thread-safe. */
-void  *concurrentQueuePop            (ConcurrentQueue *queue);
+CONCURRENT_QUEUE_TYPE concurrentQueuePop(ConcurrentQueue *queue);
 
 /* Peeks at front of the queue. If the queue is empty, blocks until an element
  is added. Thread-safe. */
-void  *concurrentQueuePeek           (ConcurrentQueue *queue);
+CONCURRENT_QUEUE_TYPE concurrentQueuePeek(ConcurrentQueue *queue);
 
 /* Attempts to pop from the front of the queue. If the queue is non-empty,
  returns the popped element and, if success is not NULL, sets *success to true.
- If the queue is empty, returns null and, if success is not NULL, sets *success
- to false. Thread-safe. */
-void  *concurrentQueuePopNonblocking (ConcurrentQueue *queue, bool *success);
+ If the queue is empty, returns CONCURRENT_QUEUE_EMPTY_DEFAULT_VALUE and, if
+ success is not NULL, sets *success to false. Thread-safe. */
+CONCURRENT_QUEUE_TYPE concurrentQueuePopNonblocking (ConcurrentQueue *queue,
+                                                     bool *success);
 
 /* Attempts to peek at the front of the queue. If the queue is non-empty,
  returns the popped element and, if success is not NULL, sets *success to true.
- If the queue is empty, returns null and, if success is not NULL, sets *success
- to false. Thread-safe. */
-void  *concurrentQueuePeekNonblocking(ConcurrentQueue *queue, bool *success);
+ If the queue is empty, returns CONCURRENT_QUEUE_EMPTY_DEFAULT_VALUE and, if
+ success is not NULL, sets *success to false. Thread-safe. */
+CONCURRENT_QUEUE_TYPE concurrentQueuePeekNonblocking(ConcurrentQueue *queue,
+                                                     bool *success);
 
 #endif /* Concurrent_Queue_h */

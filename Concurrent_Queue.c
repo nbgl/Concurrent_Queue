@@ -8,10 +8,12 @@
 #include <pthread.h>
 #include <stdlib.h>
 #include "Bool.h"
+#include "Concurrent_Queue_Element_Type.h"
+
 
 typedef struct _LinkedListElement LinkedListElement;
 struct _LinkedListElement {
-    void *element;
+    CONCURRENT_QUEUE_TYPE element;
     LinkedListElement *next;
 };
 
@@ -30,7 +32,7 @@ void concurrentQueueInit(ConcurrentQueue *queue) {
 }
 void concurrentQueueDestroy(ConcurrentQueue *queue) {
     LinkedListElement *start = queue->start;
-    while (start) { // deallocate all the elements
+    while (start) { /* deallocate all the elements */
         LinkedListElement *next = start->next;
         free(start);
         start = next;
@@ -39,7 +41,7 @@ void concurrentQueueDestroy(ConcurrentQueue *queue) {
     pthread_cond_destroy(&queue->nonemptyCond);
 }
 
-void concurrentQueuePush(ConcurrentQueue *queue, void *element) {
+void concurrentQueuePush(ConcurrentQueue *queue, CONCURRENT_QUEUE_TYPE element) {
     pthread_mutex_lock(&queue->mutex);
     
     LinkedListElement *newEnd = malloc(sizeof(LinkedListElement));
@@ -53,70 +55,83 @@ void concurrentQueuePush(ConcurrentQueue *queue, void *element) {
     pthread_mutex_unlock(&queue->mutex);
 }
 
-void *concurrentQueuePeek(ConcurrentQueue *queue) {
+CONCURRENT_QUEUE_TYPE concurrentQueuePeek(ConcurrentQueue *queue) {
     pthread_mutex_lock(&queue->mutex);
-    void *result;
-    if (!queue->start) {
+    if (!queue->start) /* queue empty */ {
         pthread_cond_wait(&queue->nonemptyCond, &queue->mutex);
     }
-    result = queue->start->element;
+    
+    CONCURRENT_QUEUE_TYPE result = queue->start->element;
+    
     pthread_mutex_unlock(&queue->mutex);
     return result;
 }
 
-void *concurrentQueuePop(ConcurrentQueue *queue) {
+CONCURRENT_QUEUE_TYPE concurrentQueuePop(ConcurrentQueue *queue) {
     pthread_mutex_lock(&queue->mutex);
-    void *result;
-    if (!queue->start) {
+    if (!queue->start) /* queue empty */ {
         pthread_cond_wait(&queue->nonemptyCond, &queue->mutex);
     }
-    result = queue->start->element;
+    
     LinkedListElement *oldStart = queue->start;
+    CONCURRENT_QUEUE_TYPE result = oldStart->element;
     if (queue->endPointer == &oldStart->next) {
+        /* popping the only element */
         queue->start = NULL;
         queue->endPointer = &queue->start;
     } else {
+        /* still elements left */
         queue->start = oldStart->next;
     }
     free(oldStart);
+    
     pthread_mutex_unlock(&queue->mutex);
     return result;
 }
 
-void *concurrentQueuePopNonblocking(ConcurrentQueue *queue, bool *success) {
+CONCURRENT_QUEUE_TYPE concurrentQueuePopNonblocking(ConcurrentQueue *queue,
+                                                    bool *success) {
     pthread_mutex_lock(&queue->mutex);
-    void *result;
-    if (!queue->start) {
-        if (success) {
-            (*success) = false;
-        }
-        result = NULL;
-    } else {
-        result = queue->start->element;
+    
+    bool empty = !queue->start;
+    if (success) {
+        *success = !empty;
+    }
+    
+    CONCURRENT_QUEUE_TYPE result;
+    if (empty) /* queue empty */ {
+        result = CONCURRENT_QUEUE_EMPTY_DEFAULT_VALUE;
+    } else /* queue nonempty */ {
         LinkedListElement *oldStart = queue->start;
+        result = oldStart->element;
         if (queue->endPointer == &oldStart->next) {
+            /* popping the only element */
             queue->start = NULL;
             queue->endPointer = &queue->start;
         } else {
+            /* still elements left */
             queue->start = oldStart->next;
         }
         free(oldStart);
     }
+    
     pthread_mutex_unlock(&queue->mutex);
     return result;
 }
 
-void *concurrentQueuePeekNonblocking(ConcurrentQueue *queue, bool *success) {
+CONCURRENT_QUEUE_TYPE concurrentQueuePeekNonblocking(ConcurrentQueue *queue,
+                                                     bool *success) {
     pthread_mutex_lock(&queue->mutex);
-    void *result;
-    if (!queue->start) {
-        if (success) {
-            (*success) = false;
-        }
-        result = NULL;
-    } else {
-        result = queue->start->element;
+    
+    bool empty = !queue->start;
+    if (success) {
+        *success = !empty;
     }
+    
+    CONCURRENT_QUEUE_TYPE result = empty
+        ? CONCURRENT_QUEUE_EMPTY_DEFAULT_VALUE
+        : queue->start->element;
+    
     pthread_mutex_unlock(&queue->mutex);
     return result;
 }
