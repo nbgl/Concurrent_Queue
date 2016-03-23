@@ -19,8 +19,8 @@
  1. #define CONCURRENT_QUEUE_TYPE                void*
     #define CONCURRENT_QUEUE_EMPTY_DEFAULT_VALUE NULL
  
- 2. #define CONCURRENT_QUEUE_TYPE                UINT32_MAX
-    #define CONCURRENT_QUEUE_EMPTY_DEFAULT_VALUE uint32_t
+ 2. #define CONCURRENT_QUEUE_TYPE                uint32_t
+    #define CONCURRENT_QUEUE_EMPTY_DEFAULT_VALUE UINT32_MAX
  
  3. #define CONCURRENT_QUEUE_TYPE                char
     #define CONCURRENT_QUEUE_EMPTY_DEFAULT_VALUE 0
